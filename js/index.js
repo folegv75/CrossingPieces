@@ -24,7 +24,7 @@ class Line
 		this.sY1 = 0;
 		this.sX2 = 0;
 		this.sY2 = 0;
-		this.sWidth = '1';
+		this.sWidth = '2';
 		this.sColor = 'black';
 		//this.sDash = "0,0";
 		this.Dash = "0,0";
@@ -111,7 +111,7 @@ class Main
 		this.Line1.Y1 = 200;
 		this.Line1.X2 = 400;
 		this.Line1.Y2 = 200;
-		this.Line1.Width = 1;
+		this.Line1.Width = 3;
 		this.Line1.Color = "red";
 
 		this.Line2 = new Line('line2');
@@ -119,7 +119,7 @@ class Main
 		this.Line2.Y1 = 100;
 		this.Line2.X2 = 400;
 		this.Line2.Y2 = 100;
-		this.Line2.Width = 1;
+		this.Line2.Width = 3;
 		this.Line2.Color = "blue";
 
 		this.sLockLine = null;
