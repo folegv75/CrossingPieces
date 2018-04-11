@@ -20,13 +20,17 @@ class Line
 		this.SelfElem = document.createElementNS(xmlns, 'line');
 		this.SelfElem.id = this.sId;
 
+		// коэффциенты уравнений прямой вида y = k*x + b
+		this.sCoefficientK = 0;
+		this.sCoefficientB = 0;
+		this.sEquationString = 'x = 0';
+		
 		this.sX1 = 0;
 		this.sY1 = 0;
 		this.sX2 = 0;
 		this.sY2 = 0;
 		this.sWidth = '2';
 		this.sColor = 'black';
-		//this.sDash = "0,0";
 		this.Dash = "0,0";
 
 		this.SelfElem.setAttributeNS(null, 'x1', this.sX1);
@@ -51,28 +55,35 @@ class Line
 	get Y2() { return this.sY2 };
 	get Width() { return this.sWidth };
 	get Color() { return this.sColor };
+	get CoefficientK() { return this.sCoefficientK; } 
+	get CoefficientB() { return this.sCoefficientB; } 
+	get EquationString() { return  this.sEquationString;}
 
 	set X1(value) 
 	{ 
 		this.sX1 = value;
+		this.sCalculateCoefficient();
 		this.sSetAttributeNS('x1', this.sX1);
 	};
 
 	set X2(value) 
 	{ 
 		this.sX2 = value;
+		this.sCalculateCoefficient(); 
 		this.sSetAttributeNS('x2', this.sX2);
 	};
 
 	set Y1(value) 
 	{ 
 		this.sY1 = value;
+		this.sCalculateCoefficient(); 
 		this.sSetAttributeNS('y1', this.sY1);
 	};
 
 	set Y2(value) 
 	{
 		this.sY2 = value;
+		this.sCalculateCoefficient();
 		this.sSetAttributeNS('y2', this.sY2);
 	};
 	
@@ -94,6 +105,31 @@ class Line
 		this.sSetAttributeNS('stroke-dasharray', this.sDash);
 	}
 
+	// private function
+	sCalculateCoefficient() 
+	{
+		let L = this.sX2 - this.sX1;
+		let H = this.sY2 - this.sY1;
+		if (L==0) 
+		{ 
+			this.sCoefficientK = null;
+			this.sCoefficientB = this.sY1;
+			this.sEquationString = 'x = ' + this.sY1.toFixed(2);
+		} 
+		else
+		{
+			this.sCoefficientK = H / L;
+			this.sCoefficientB = this.sY1 - this.sCoefficientK * this.sX1;
+
+			if (this.sCoefficientB>=0) 
+				this.sEquationString = 'y = ' + this.sCoefficientK.toFixed(2) + '*x + ' + this.sCoefficientB.toFixed(2);
+			else 
+				this.sEquationString = 'y = ' + this.sCoefficientK.toFixed(2) + '*x - ' + (-this.sCoefficientB.toFixed(2));		
+		}
+		
+	}
+
+	// public fucntion
 	SetParent(elem) 
 	{
 		elem.appendChild(this.SelfElem);
@@ -106,7 +142,7 @@ class Main
 	{
 		this.sPointSelected = false;
 		this.HolstId = HolstId;
-		this.Line1 = new Line('line1');
+		this.Line1 = new Line('red-line');
 		this.Line1.X1 = 100;
 		this.Line1.Y1 = 200;
 		this.Line1.X2 = 400;
@@ -114,7 +150,7 @@ class Main
 		this.Line1.Width = 3;
 		this.Line1.Color = "red";
 
-		this.Line2 = new Line('line2');
+		this.Line2 = new Line('blue-line');
 		this.Line2.X1 = 100;
 		this.Line2.Y1 = 100;
 		this.Line2.X2 = 400;
@@ -125,12 +161,17 @@ class Main
 		this.sLockLine = null;
 		this.sLockPointNum = 0;
 
+
+
+
 		//<line id='line1' x1="100" y1="200" x2="400" y2="200" stroke-width="1" stroke="red"/>
 		//<line id='line2' x1="100" y1="100" x2="400" y2="100" stroke-width="1" stroke="blue"/>
 	
 		let elem = document.getElementById(this.HolstId);
 		this.Line1.SetParent(elem);
 		this.Line2.SetParent(elem);
+
+		this.DisplayInfo();		
 	
 	}
 
@@ -144,8 +185,17 @@ class Main
 		return false;
 	}
 
+	DisplayInfo()
+	{
+		let blueElem = document.getElementById('blue-info');
+		let redElem = document.getElementById('red-info');
+		blueElem.innerHTML = this.Line1.EquationString;
+		redElem.innerHTML = this.Line2.EquationString;
+	}
+
 	HolstClick(E)
 	{
+		this.DisplayInfo();
 		let cX = E.offsetX;
 		let cY = E.offsetY;
 
@@ -161,6 +211,7 @@ class Main
 				this.sLockLine.X2 = cX;
 				this.sLockLine.Y2 = cY;
 			}
+
 			this.sLockLine.Dash = "0,0";
 			this.sLockLine = null;
 			this.sLockPointNum = 0;
@@ -202,6 +253,7 @@ class Main
 	{
 		if (this.PointSelected) 
 		{
+			this.DisplayInfo();
 			let cX = E.offsetX;
 			let cY = E.offsetY;				
 			if (this.sLockPointNum==1) 
@@ -213,7 +265,7 @@ class Main
 			{
 				this.sLockLine.X2 = cX;
 				this.sLockLine.Y2 = cY;
-			}			
+			}
 		}
 	}
 
