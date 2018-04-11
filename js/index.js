@@ -189,8 +189,8 @@ class Main
 	{
 		let blueElem = document.getElementById('blue-info');
 		let redElem = document.getElementById('red-info');
-		blueElem.innerHTML = this.Line1.EquationString;
-		redElem.innerHTML = this.Line2.EquationString;
+		blueElem.innerHTML = this.Line2.EquationString;
+		redElem.innerHTML = this.Line1.EquationString;
 	}
 
 	HolstClick(E)
