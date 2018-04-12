@@ -1,16 +1,8 @@
 window.onload = Init;
 var xmlns = "http://www.w3.org/2000/svg";
 
-var AppMain = null;
+var AppMain = {};
 
-class Point
-{
-	constructor(X,Y) 
-	{
-		this.X = X;
-		this.Y = Y;
-	}
-}
 
 class Line
 {
@@ -42,7 +34,7 @@ class Line
 		//sSetAttributeNS('stroke-dasharray', this.sDash);
 	}
 
-	// priavate
+	// private
 	sSetAttributeNS(name, value) 
 	{
 		this.SelfElem.setAttributeNS(null, name, value);
@@ -136,40 +128,87 @@ class Line
 	}
 }
 
+/** Class описывает точку. */
+class Point 
+{
+	/** Создать точку
+	* @param {number} x - координата x.
+	* @param {number} y - координата y.
+	*/	
+	constructor (x,y)
+	{
+		this.sX = x;
+		this.sY = y;
+	}
+
+	get X() { return this.sX; }
+	get Y() { return this.sY; }
+	set X(x) { this.sX=x; } 
+	set Y(w) { this.sY=y; } 
+}
+
+/**
+ * Перечисление описание точки пересечения
+ * @readonly
+ * @enum {number}
+ */
+var CrossingType = {
+	/** Есть точка пересечения */
+	INTERSECT : 1,
+	/** Нет точки пересечения, прямые паралельны */
+	PARALLEL : 2,
+	/** Множество точек пересечения, прямые друг под другом */
+	SET : 3
+};
+
+/** Class описывает точку пересечения */
+class CrossingInfo
+{
+	/** Создать описание точки пересечения.
+	* @param {Point} p - точка пересечения
+	* @param {CrossingType} t - пересечения
+	*/	
+	constructor (p, t) 
+	{
+		this.sPoint = p;
+		this.sType = t;
+	}
+
+	get Type() { return this.sType; }
+	get Point() { return this.sPoint; }
+
+	set Type(value) { this.sType = value; }
+	set Point(value) { this.sPoint = value; }
+}
+
 class Main 
 {
 	constructor(HolstId) 
 	{
 		this.sPointSelected = false;
 		this.HolstId = HolstId;
-		this.Line1 = new Line('red-line');
-		this.Line1.X1 = 100;
-		this.Line1.Y1 = 200;
-		this.Line1.X2 = 400;
-		this.Line1.Y2 = 200;
-		this.Line1.Width = 3;
-		this.Line1.Color = "red";
+		this.RedLine = new Line('red-line');
+		this.RedLine.X1 = 100;
+		this.RedLine.Y1 = 200;
+		this.RedLine.X2 = 400;
+		this.RedLine.Y2 = 200;
+		this.RedLine.Width = 3;
+		this.RedLine.Color = "red";
 
-		this.Line2 = new Line('blue-line');
-		this.Line2.X1 = 100;
-		this.Line2.Y1 = 100;
-		this.Line2.X2 = 400;
-		this.Line2.Y2 = 100;
-		this.Line2.Width = 3;
-		this.Line2.Color = "blue";
+		this.BlueLine = new Line('blue-line');
+		this.BlueLine.X1 = 100;
+		this.BlueLine.Y1 = 100;
+		this.BlueLine.X2 = 400;
+		this.BlueLine.Y2 = 100;
+		this.BlueLine.Width = 3;
+		this.BlueLine.Color = "blue";
 
 		this.sLockLine = null;
 		this.sLockPointNum = 0;
-
-
-
-
-		//<line id='line1' x1="100" y1="200" x2="400" y2="200" stroke-width="1" stroke="red"/>
-		//<line id='line2' x1="100" y1="100" x2="400" y2="100" stroke-width="1" stroke="blue"/>
 	
 		let elem = document.getElementById(this.HolstId);
-		this.Line1.SetParent(elem);
-		this.Line2.SetParent(elem);
+		this.RedLine.SetParent(elem);
+		this.BlueLine.SetParent(elem);
 
 		this.DisplayInfo();		
 	
@@ -189,8 +228,8 @@ class Main
 	{
 		let blueElem = document.getElementById('blue-info');
 		let redElem = document.getElementById('red-info');
-		blueElem.innerHTML = this.Line2.EquationString;
-		redElem.innerHTML = this.Line1.EquationString;
+		blueElem.innerHTML = this.BlueLine.EquationString;
+		redElem.innerHTML = this.RedLine.EquationString;
 	}
 
 	HolstClick(E)
@@ -220,27 +259,27 @@ class Main
 		else 
 		{
 			// найдем ближайший конец линии +- 20 точек
-			if (this.IsNeareast(this.Line1.X1, this.Line1.Y1, 30, cX, cY))
+			if (this.IsNeareast(this.RedLine.X1, this.RedLine.Y1, 30, cX, cY))
 			{
-				this.sLockLine = this.Line1;
+				this.sLockLine = this.RedLine;
 				this.sLockPointNum = 1;				
 				this.PointSelected = true;
 			} 
-			else if (this.IsNeareast(this.Line1.X2, this.Line1.Y2, 30, cX, cY))
+			else if (this.IsNeareast(this.RedLine.X2, this.RedLine.Y2, 30, cX, cY))
 			{
-				this.sLockLine = this.Line1;
+				this.sLockLine = this.RedLine;
 				this.sLockPointNum = 2;
 				this.PointSelected = true;
 			}
-			else if (this.IsNeareast(this.Line2.X1, this.Line2.Y1, 30, cX, cY))
+			else if (this.IsNeareast(this.BlueLine.X1, this.BlueLine.Y1, 30, cX, cY))
 			{
-				this.sLockLine = this.Line2;
+				this.sLockLine = this.BlueLine;
 				this.sLockPointNum = 1;
 				this.PointSelected = true;
 			}
-			else if (this.IsNeareast(this.Line2.X2, this.Line2.Y2, 30, cX, cY))
+			else if (this.IsNeareast(this.BlueLine.X2, this.BlueLine.Y2, 30, cX, cY))
 			{
-				this.sLockLine = this.Line2;
+				this.sLockLine = this.BlueLine;
 				this.sLockPointNum = 2;
 				this.PointSelected = true;
 			}
@@ -266,14 +305,93 @@ class Main
 				this.sLockLine.X2 = cX;
 				this.sLockLine.Y2 = cY;
 			}
+			this.OnCalculateCrossing(E);
 		}
 	}
 
-	CalculateCrossing(E)
+
+
+	// 
+	// 
+	
+	/** @description найти точку пересечения двух линий. Решение см. TZ.doc.
+ 	* @param {firstLine} первая линия  
+ 	* @param {secondLine} вторая линия
+ 	* @return {CrossingInfo}  - информация о пересечении
+ 	*/ 	
+	CalculateCrossing(firstLine,secondLine)
 	{
-		alert('Calc');
+		let rez = null;
+		// получили коэфффициенты для прямых y = ax+b (y = кx+b), если a== null, значит прямая вертикальная
+		let A1 = firstLine.CoefficientK;
+		let B1 = firstLine.CoefficientB;
+		let A2 = secondLine.CoefficientK;
+		let B2 = secondLine.CoefficientB;
+
+		// проверим случай паралелльных прямых
+		if (A1==A2) 
+		{
+			// если прямые вертикальные
+			if (A1==null) 
+			{ 
+				// проверим совпадают ли вертикальные прямые, т.е. совпадают ли координаты x
+				if (firstLine.X1 == firstLine.X2) rez = new CrossingInfo(null, CrossingType.SET);
+				else rez = new CrossingInfo(null, CrossingType.PARALLEL);
+			} 
+			else 
+			{
+				// проверим совпадают ли прямые, углы наклона одинаковые, проверим совпадают ли коээфициенты b
+				if (B1==B2) rez = new CrossingInfo(null, CrossingType.SET);
+				else rez = new CrossingInfo(null, CrossingType.PARALLEL);
+			}
+		}
+		// если первая прямая вертикальная
+		else if (A1==null) 
+		{
+			// подставим X координату из первой прямой в уравнение второй и получим координату y пересечения
+			let y = A2 * firstLine.X1 + B2;
+			rez = new CrossingInfo(new Point(firstLine.X1, y), CrossingType.INTERSECT);
+		}
+		// если вторая прямая вертикальная
+		else if (A2==null) 
+		{
+			// подставим X координату из второй прямой в уравнение первой и получим координату y пересечения
+			let y = A1 * secondLine.X1 + B1;
+			rez = new CrossingInfo(new Point(secondLine.X1, y), CrossingType.INTERSECT);
+		}
+		// общий случай
+		else
+		{
+			// координату X нашли из решения системы уравнений
+			let x = (B2-B1) / (A1-A2);
+			// координату Y находим подставляя X в уравненией первой прямой
+			let y = A1*x + B1;
+			rez = new CrossingInfo(new Point(x, y), CrossingType.INTERSECT);			
+		}
+		return rez;
+	}
+
+
+	OnCalculateCrossing(E) 
+	{
+		let IntersectPoint = this.CalculateCrossing(this.BlueLine,this.RedLine);
+		let elem = document.getElementById('intersect-info');
+
+		if (IntersectPoint.Point==null) elem.innerHTML = "X=null Y=null; Тип: ";
+		else elem.innerHTML = "X=" + IntersectPoint.Point.X.toFixed(2) + " Y=" + IntersectPoint.Point.Y.toFixed(2) + " Тип: ";
+		
+		switch (IntersectPoint.Type) 
+		{
+			case CrossingType.INTERSECT: elem.innerHTML += "Пересечение";
+			break;
+			case CrossingType.PARALLEL: elem.innerHTML += "Параллельно";
+			break;
+			case CrossingType.SET: elem.innerHTML += "Множество";
+			break;
+		}		
 	}
 }
+
 
 function EventInit()
 {
@@ -292,7 +410,6 @@ function Init()
 	EventInit();
 }
 
-
 function HolstClick(E) 
 {
 	AppMain.HolstClick(E);
@@ -305,7 +422,7 @@ function HolstMove(E)
 
 function CalculateCrossing(E) 
 {
-	AppMain.CalculateCrossing(E);
+	AppMain.OnCalculateCrossing(E);
 }
 
 
