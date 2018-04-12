@@ -3,7 +3,6 @@ var xmlns = "http://www.w3.org/2000/svg";
 
 var AppMain = {};
 
-
 class Line
 {
 	constructor(Id)
@@ -126,6 +125,22 @@ class Line
 	{
 		elem.appendChild(this.SelfElem);
 	}
+	
+	// проверить, что координата лежит между координатам x1 и x2
+	IsCoordBetween(x, x1, x2)
+	{
+		if (x2>=x1 && x>=x1 && x<=x2) return true;			
+		if (x2<=x1 && x>=x2 && x<=x1) return true;			
+		return false;
+	}
+	
+	// проверяет находится ли точка внутри прямоугольника 
+	// если отрезок задает диагональ прямоугольника
+	IsPointInRect(point) 
+	{
+		return this.IsCoordBetween(point.X, this.X1, this.X2) && 
+			this.IsCoordBetween(point.Y, this.Y1, this.Y2);	
+	}
 }
 
 /** Class описывает точку. */
@@ -143,8 +158,8 @@ class Point
 
 	get X() { return this.sX; }
 	get Y() { return this.sY; }
-	set X(x) { this.sX=x; } 
-	set Y(w) { this.sY=y; } 
+	set X(value) { this.sX=value; } 
+	set Y(value) { this.sY=value; } 
 }
 
 /** @desc Класс описывает фигуру, отображающую точку */
@@ -157,22 +172,25 @@ class FigurePoint
 		this.sVisible = false;
 		this.sParentId = null;
 		this.SelfElem = null;
+		this.sR = 3;
+		this.sColor = 'green';
 	}
 
 	SetParentId(id) 
 	{
 		this.sParentId = id;
-
 	}
+
+	set R(value) { this.sR=value; }
 
 	Show() 
 	{
 		if (this.SelfElem==null) this.SelfElem = document.createElementNS(xmlns, 'circle');
 		this.SelfElem.setAttributeNS(null, 'cx', this.sPoint.X);
-		this.SelfElem.setAttributeNS(null, 'cy', this.sPoint.X);
-		this.SelfElem.setAttributeNS(null, 'r', 3);
-		this.SelfElem.setAttributeNS(null, 'color', 'green');
-		this.SelfElem.setAttributeNS(null, 'fill', 'green');
+		this.SelfElem.setAttributeNS(null, 'cy', this.sPoint.Y);
+		this.SelfElem.setAttributeNS(null, 'r', this.sR);
+		this.SelfElem.setAttributeNS(null, 'color', this.sColor);
+		this.SelfElem.setAttributeNS(null, 'fill', this.sColor);
 
 		let elem = document.getElementById(this.sParentId);
 		if (elem != null) {
@@ -185,13 +203,15 @@ class FigurePoint
 	Hide()
 	{
 		if (this.SelfElem==null) return;
-		this.SelfElem.parentElement.removeChild(this.SelfElem);
+		let p = this.SelfElem.parentElement;
+		if (p!=null) p.removeChild(this.SelfElem);
 		this.sVisible = false;
 	}
 
 	Move(point)
 	{
-		this.sPoint = point;
+		this.sPoint.X = point.X;
+		this.sPoint.Y = point.Y;
 		if (this.sVisible) this.Show();
 	}
 
@@ -203,6 +223,8 @@ class FigurePoint
  * @enum {number}
  */
 var CrossingType = {
+	/** Нет точки пересечения */
+	NONE : 0,
 	/** Есть точка пересечения */
 	INTERSECT : 1,
 	/** Нет точки пересечения, прямые паралельны */
@@ -254,6 +276,9 @@ class Main
 		this.BlueLine.Color = "blue";
 
 		this.PointOfCross = new FigurePoint('cross-point', new Point(0,0));
+		this.PointOfCross.SetParentId(HolstId);
+		this.PointOfCross.R = 6;
+		//this.PointOfCross.Show();
 
 		this.sLockLine = null;
 		this.sLockPointNum = 0;
@@ -284,6 +309,8 @@ class Main
 		let redElem = document.getElementById('red-info');
 		blueElem.innerHTML = this.BlueLine.EquationString;
 		redElem.innerHTML = this.RedLine.EquationString;
+		
+		this.PointOfCross.Hide();
 
 		let elem = document.getElementById('intersect-info');
 
@@ -292,8 +319,11 @@ class Main
 		
 		switch (this.IntersectPoint.Type) 
 		{
+			case CrossingType.NONE: elem.innerHTML += "Нет пересечения";
+			break;
 			case CrossingType.INTERSECT: elem.innerHTML += "Пересечение";
-
+				this.PointOfCross.Move(this.IntersectPoint.Point);
+				this.PointOfCross.Show();
 			break;
 			case CrossingType.PARALLEL: elem.innerHTML += "Параллельно";
 			break;
@@ -442,6 +472,15 @@ class Main
 			let y = A1*x + B1;
 			rez = new CrossingInfo(new Point(x, y), CrossingType.INTERSECT);			
 		}
+		// Здесь мы нашли точку пересечения для прямых rez
+		if (rez.Type == CrossingType.INTERSECT)
+		
+		// Теперь проверим, что точка принадлежит обоим отрезкам
+		if (!firstLine.IsPointInRect(rez.Point) || !secondLine.IsPointInRect(rez.Point))
+		{
+			rez = new CrossingInfo(null, CrossingType.NONE);
+		}
+		
 		return rez;
 	}
 
