@@ -147,6 +147,56 @@ class Point
 	set Y(w) { this.sY=y; } 
 }
 
+/** @desc Класс описывает фигуру, отображающую точку */
+class FigurePoint
+{
+	constructor (id, point)
+	{
+		this.sId = id;
+		this.sPoint = point;
+		this.sVisible = false;
+		this.sParentId = null;
+		this.SelfElem = null;
+	}
+
+	SetParentId(id) 
+	{
+		this.sParentId = id;
+
+	}
+
+	Show() 
+	{
+		if (this.SelfElem==null) this.SelfElem = document.createElementNS(xmlns, 'circle');
+		this.SelfElem.setAttributeNS(null, 'cx', this.sPoint.X);
+		this.SelfElem.setAttributeNS(null, 'cy', this.sPoint.X);
+		this.SelfElem.setAttributeNS(null, 'r', 3);
+		this.SelfElem.setAttributeNS(null, 'color', 'green');
+		this.SelfElem.setAttributeNS(null, 'fill', 'green');
+
+		let elem = document.getElementById(this.sParentId);
+		if (elem != null) {
+			elem.appendChild(this.SelfElem);
+			this.sVisible = true;
+		}
+
+	}
+
+	Hide()
+	{
+		if (this.SelfElem==null) return;
+		this.SelfElem.parentElement.removeChild(this.SelfElem);
+		this.sVisible = false;
+	}
+
+	Move(point)
+	{
+		this.sPoint = point;
+		if (this.sVisible) this.Show();
+	}
+
+}
+
 /**
  * Перечисление описание точки пересечения
  * @readonly
@@ -203,12 +253,16 @@ class Main
 		this.BlueLine.Width = 3;
 		this.BlueLine.Color = "blue";
 
+		this.PointOfCross = new FigurePoint('cross-point', new Point(0,0));
+
 		this.sLockLine = null;
 		this.sLockPointNum = 0;
 	
 		let elem = document.getElementById(this.HolstId);
 		this.RedLine.SetParent(elem);
 		this.BlueLine.SetParent(elem);
+
+		this.IntersectPoint = this.CalculateCrossing(this.RedLine, this.BlueLine);
 
 		this.DisplayInfo();		
 	
@@ -230,11 +284,28 @@ class Main
 		let redElem = document.getElementById('red-info');
 		blueElem.innerHTML = this.BlueLine.EquationString;
 		redElem.innerHTML = this.RedLine.EquationString;
+
+		let elem = document.getElementById('intersect-info');
+
+		if (this.IntersectPoint.Point==null) elem.innerHTML = "X=null Y=null; Тип: ";
+		else elem.innerHTML = "X=" + this.IntersectPoint.Point.X.toFixed(2) + " Y=" + this.IntersectPoint.Point.Y.toFixed(2) + " Тип: ";
+		
+		switch (this.IntersectPoint.Type) 
+		{
+			case CrossingType.INTERSECT: elem.innerHTML += "Пересечение";
+
+			break;
+			case CrossingType.PARALLEL: elem.innerHTML += "Параллельно";
+			break;
+			case CrossingType.SET: elem.innerHTML += "Множество";
+			break;
+		}		
+		
 	}
 
 	HolstClick(E)
 	{
-		this.DisplayInfo();
+
 		let cX = E.offsetX;
 		let cY = E.offsetY;
 
@@ -286,6 +357,9 @@ class Main
 			if (this.PointSelected) this.sLockLine.Dash = "5,5";
 
 		}
+
+		this.IntersectPoint = this.CalculateCrossing(this.RedLine, this.BlueLine);		
+		this.DisplayInfo();
 	}	
 
 	HolstMove(E)
@@ -305,7 +379,7 @@ class Main
 				this.sLockLine.X2 = cX;
 				this.sLockLine.Y2 = cY;
 			}
-			this.OnCalculateCrossing(E);
+			this.IntersectPoint = this.CalculateCrossing(this.RedLine, this.BlueLine);
 		}
 	}
 
@@ -374,21 +448,7 @@ class Main
 
 	OnCalculateCrossing(E) 
 	{
-		let IntersectPoint = this.CalculateCrossing(this.BlueLine,this.RedLine);
-		let elem = document.getElementById('intersect-info');
-
-		if (IntersectPoint.Point==null) elem.innerHTML = "X=null Y=null; Тип: ";
-		else elem.innerHTML = "X=" + IntersectPoint.Point.X.toFixed(2) + " Y=" + IntersectPoint.Point.Y.toFixed(2) + " Тип: ";
-		
-		switch (IntersectPoint.Type) 
-		{
-			case CrossingType.INTERSECT: elem.innerHTML += "Пересечение";
-			break;
-			case CrossingType.PARALLEL: elem.innerHTML += "Параллельно";
-			break;
-			case CrossingType.SET: elem.innerHTML += "Множество";
-			break;
-		}		
+		this.IntersectPoint = this.CalculateCrossing(this.BlueLine,this.RedLine);
 	}
 }
 
