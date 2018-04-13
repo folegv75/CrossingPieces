@@ -3,6 +3,121 @@ var xmlns = "http://www.w3.org/2000/svg";
 
 var AppMain = {};
 
+class ConnectionLine 
+{
+	constructor (id)
+	{
+		this.LeftArrow = new Arrow('l-arr',100,280,'LEFT',45);
+		this.LeftArrow.SetParentId('Holst');
+		this.LeftArrow.Show();
+		this.RightArrow = new Arrow('r-arr',200,280,'RIGHT',45);
+		this.RightArrow.SetParentId('Holst');
+		this.RightArrow.Show();
+
+		this.SelfElem = null;
+
+		let Holst = document.getElementById('Holst');
+		if (this.SelfElem==null) this.SelfElem = document.createElementNS(xmlns, 'path');
+		Holst.appendChild(this.SelfElem);
+		this.SelfElem.setAttributeNS(null, 'fill',"transparent");
+		this.SelfElem.setAttributeNS(null, 'stroke-width',"1");
+		this.SelfElem.setAttributeNS(null, 'stroke', "magenta");
+		this.SelfElem.setAttributeNS(null, 'stroke-dasharray', "4,2");
+		this.SelfElem.setAttributeNS(null, 'stroke-dasharray', "0,0");
+
+		if (1==0) 
+		{
+			// первый основной вариант, когда концы линии уменьшены на длину стрелки
+			this.SelfElem.setAttributeNS(null,'d',`M 110,280 Q 150, 50, 190,280`);
+
+			//40 - половина длины между концами линии (190-110)/2
+			//120 - высота контрольной точки (400 - 280)
+			//-230 - высота контрольной точки (50 - 280)
+
+			let angle = Math.atan(-230/40) * 180 / Math.PI;
+
+			this.LeftArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${angle},110,280)`);
+			this.RightArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${-angle},190,280)`);
+		}
+
+		{
+			// Второй вариант, когда коны линии совпадает с концами стрелки
+			this.SelfElem.setAttributeNS(null,'d',`M 100,280 Q 150, 281, 200,280`);
+			//50 - половина длины между концами линии (200-100)/2
+			let angle = Math.atan(1/50) * 180 / Math.PI;
+
+			this.LeftArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${angle},100,280)`);
+			this.RightArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${-angle},200,280)`);
+		}
+
+	}
+}
+
+class Arrow
+{
+	/**
+	 * 
+	 * @param {string} id - идентификатор
+	 * @param {number} x  - координата по X
+	 * @param {number} y - координата по Y
+	 * @param {string} d - направление "LEFT" или "RIGHT"
+	 * @param {string} g - угол стрелки "90","60","45","30","20"
+	 */
+	constructor(id,x,y,d,g)
+	{
+		this.Id = id;
+		this.sX = x;
+		this.sY = y;
+		this.sLength = 10;
+		this.SelfElem = null;
+		this.sDirection = d;
+		this.sDegree = g;
+
+		this.sWd =10;
+		// стрелка 60 градусов тангенс 30 = 0.577
+		// стрелка 45 градусов тангенс 22,5 = 0,414
+		// стрелка 30 градусов тангенс 15 = 0,268
+		// стрелка 20 градусов тангенс 10 = 0,176
+		
+		if (this.sDegree=="90") this.sHg = this.sWd
+		else if (this.sDegree=="60") this.sHg = this.sWd * 0.577;
+		else if (this.sDegree=="45") this.sHg = this.sWd * 0.414;
+		else if (this.sDegree=="30") this.sHg = this.sWd * 0.268
+		else if (this.sDegree=="20") this.sHg = this.sWd * 0.176
+		else this.sHg = this.Wd * 0.577;
+	}
+
+	SetParentId(parentId)
+	{
+		this.sParentId= parentId;
+	}
+
+	Show()
+	{
+		if (this.SelfElem==null) this.SelfElem = document.createElementNS(xmlns, 'path');
+		this.SelfElem.setAttributeNS(null, 'fill',"transparent");
+		this.SelfElem.setAttributeNS(null, 'stroke-width',"1");
+		this.SelfElem.setAttributeNS(null, 'stroke', "black");
+		this.SelfElem.setAttributeNS(null, 'stroke-dasharray', "4,2");
+		this.SelfElem.setAttributeNS(null, 'stroke-dasharray', "0,0");
+		
+		// стрелка 90 градусов тангенс 45 = 1
+		let Wd = 10;
+		let Hg = Wd;
+
+		// стрелка влево
+		if (this.sDirection == "LEFT")
+			this.SelfElem.setAttributeNS(null,'d',`M ${this.sX} ${this.sY} h ${this.sWd} M ${this.sX} ${this.sY} l ${this.sWd} -${this.sHg} M ${this.sX} ${this.sY} l ${this.sWd} ${this.sHg}`);
+		else
+			// стрелка вправо
+			this.SelfElem.setAttributeNS(null,'d',`M ${this.sX} ${this.sY} h -${this.sWd} M ${this.sX} ${this.sY} l -${this.sWd} -${this.sHg} M ${this.sX} ${this.sY} l -${this.sWd} ${this.sHg}`);
+		
+		let p = document.getElementById(this.sParentId);
+		p.appendChild(this.SelfElem);
+	}
+
+}
+
 class Line
 {
 	constructor(Id)
@@ -290,7 +405,17 @@ class Main
 		this.IntersectPoint = this.CalculateCrossing(this.RedLine, this.BlueLine);
 
 		this.DisplayInfo();		
-	
+
+		this.ArrowLeft = new Arrow('arrow-test',40,40,"LEFT","30");
+		this.ArrowLeft.SetParentId(HolstId);
+		this.ArrowLeft.Show();
+
+		this.ArrowRight = new Arrow('arrow-test',80,40,"RIGHT","45");
+		this.ArrowRight.SetParentId(HolstId);
+		this.ArrowRight.Show();
+
+		let sConnectionLine = new ConnectionLine('conline');
+
 	}
 
 	get PointSelected() { return this.sPointSelected; }

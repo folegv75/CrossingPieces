@@ -1,3 +1,17 @@
+/*@import url('fonts/InconsolataCyr.ttf');*/
+
+
+ @font-face {
+    font-family: testfont; /* Гарнитура шрифта */
+    /*src: url(fonts/pompadur.eot); /* Для IE5-8 */
+    /*src: local(InconsolataCyr2), url(../fonts/InconsolataCyr.ttf); /* Для остальных браузеров */
+    src: url('../fonts/InconsolataCyr.ttf'); 
+}
+   
+body {
+    font-family: testfont; /* Гарнитура шрифта */
+}
+   
 .border { 
     /* background: #70809014; */
     border: dashed 1px ; 
