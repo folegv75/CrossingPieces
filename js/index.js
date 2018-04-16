@@ -42,9 +42,9 @@ class ConnectionLine
 
 		{
 			// Второй вариант, когда коны линии совпадает с концами стрелки
-			this.SelfElem.setAttributeNS(null,'d',`M 100,280 Q 150, 281, 200,280`);
+			this.SelfElem.setAttributeNS(null,'d',`M 100,280 Q 150, 340, 200,280`);
 			//50 - половина длины между концами линии (200-100)/2
-			let angle = Math.atan(1/50) * 180 / Math.PI;
+			let angle = Math.atan(60/50) * 180 / Math.PI;
 
 			this.LeftArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${angle},100,280)`);
 			this.RightArrow.SelfElem.setAttributeNS(null,'transform',`rotate(${-angle},200,280)`);
